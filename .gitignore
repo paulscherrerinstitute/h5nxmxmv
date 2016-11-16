@@ -1,0 +1,8 @@
+*~
+*pyc
+.*.swp
+TAGS
+tags
+junk/
+data/
+.imdone/
