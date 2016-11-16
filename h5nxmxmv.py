@@ -17,6 +17,11 @@ This script will:
     3. remove old source datafile hardlink
     4. rename master file to its new filename
 
+IMPORTANT: If '--missing-ok' was used and data files are missing, then
+           master file is updated so it does not contain a reference to
+           the missing data file.
+
+
 This script DOES NOT:
 
     - handle overwriting files
@@ -24,6 +29,10 @@ This script DOES NOT:
 
     - rename across different filesystems
         => TIP: rename locally and copy it afterwards
+
+    - rename log files
+    - update log files to reflect new filenames
+    - update databases to reflect new filenames
 
 CAVEAT:
    Your data is precious right? Test this script in
@@ -34,6 +43,7 @@ parser = argparse.ArgumentParser(
     formatter_class=argparse.RawTextHelpFormatter,
     epilog=program_help)
 parser.add_argument('--dry-run', help='dry run; just print what would happen - activates verbose', action='store_true', default=False)
+parser.add_argument('--missing-ok', dest='missing_ok', help='continues if data files are missing', action='store_true', default=False)
 parser.add_argument('--quiet', dest='verbose', help='be quiet', action='store_false', default=True)
 parser.add_argument("source", help='filename of original HDF5 master file')
 parser.add_argument("dest", help='new filename of renamed master file and data files accordingly')
@@ -109,6 +119,7 @@ data_keys.sort()
 #
 logging.info("creating task list")
 rename_list = []
+missing_list = []
 for k in data_keys:
     # Get the filename and not the full path to the linked hdf5 file
     h5link = h5['/entry/data'].get(k, getlink=True)
@@ -116,14 +127,23 @@ for k in data_keys:
     if not isinstance(h5link, h5py.ExternalLink):
         logging.fatal('Link "/entry/data/{}" is not an ExternalLink! Aborting...'.format(k))
     srcd = h5link.filename
-
-    if not os.path.exists(srcd):
-        logging.error('missing data file: {}'.format(srcd))
-        logging.fatal('aborting...')
+    _f1, _f2 = os.path.split(srcd)
+    if srcd != _f2:
+        logging.fatal('a folder specification was found in the ExternalLink!')
+        h5.close()
         exit(1)
 
-    # FIXME following line assumes "srcd" does not
-    #       contain a folder specification
+    if not os.path.exists(srcd):
+        if args.missing_ok:
+            logging.warn('missing data file {}  - continuing'.format(srcd))
+            missing_list.append((k, srcd))
+            continue
+        else:
+            logging.warn('missing data file: {}'.format(srcd))
+            logging.warn('if data collection was aborted, use "--missing-ok" option')
+            logging.fatal('aborting...')
+            h5.close()
+            exit(1)
     dstd = srcd.replace(src_prefix, dst_prefix, 1)
     dstd = os.path.join(dst_folder, dstd)
 
@@ -131,6 +151,7 @@ for k in data_keys:
         logging.fatal('data file already exists: {}'.format(dstd))
         logging.fatal('master file was not there though... bug?!? aborting...')
         logging.fatal('check folder thoroughly and try again')
+        h5.close()
         exit(1)
 
     # all good append file
@@ -157,9 +178,19 @@ for k, s, d in rename_list:
     logging.info('.....unlinking {}'.format(s))
     os.unlink(s)
 
+# delete missing datasets from hdf5
+for k, s in missing_list:
+    data_key = '/entry/data/{}'.format(k)
+    logging.info('...removing pointer to misssing data file {} => {}'.format(data_key, s))
+    del h5[data_key]
+
+logging.info('execution finished')
+logging.info('closing master hdf5 file')
 h5.close()
 
 if args.dry_run:
     logging.info('would rename master {} => {}'.format(src, destination))
 else:
+    logging.info('renaming master hdf5 file {} => {}'.format(src, destination))
     os.rename(src, destination)
+logging.info('finished.')
