@@ -22,4 +22,4 @@ file conforming to the NeXus/nxMX application definition:
     * **TIP** rename locally and copy it afterwards
 
 ## CAVEAT
-    * Your data is precious right? **Test this script in your _OWN_ environment before using it.**
+* Your data is precious right? **Test this script in your _OWN_ environment before using it.**
