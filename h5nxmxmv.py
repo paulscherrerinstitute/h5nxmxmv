@@ -44,14 +44,11 @@ if args.verbose or args.dry_run:
     loglvl = logging.DEBUG
 
 logging.basicConfig(level=loglvl,
-    #format= '[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
     format= '%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y.%m.%d %H:%M:%S')
 
 src = args.source
 destination = args.dest
-
-logging.debug("src={} destination={}".format(src, destination))
 
 # find out destination folder and whether it is writable
 #
@@ -100,7 +97,7 @@ h5 = h5py.File(src, mode=mode)
 # Build a list of things to rename
 #
 rename_list = []
-for k,v in h5['/entry/data'].items():
+for k, v in h5['/entry/data'].items():
     # This is how we get the filename only and not the
     # full path to the linked hdf5 file
     h5link = h5['/entry/data'].get(k, getlink=True)
