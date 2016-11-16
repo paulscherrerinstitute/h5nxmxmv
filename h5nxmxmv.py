@@ -65,6 +65,10 @@ if not os.access(dst_folder, os.W_OK):
         os.getenv('USER')
     ))
 
+if '_master.h5' not in dst:
+    logging.fatal('dest filename must include "_master.h5"')
+    exit(1)
+
 src_prefix = src.replace('_master.h5', '')
 dst_prefix = dst.replace('_master.h5', '')
 
