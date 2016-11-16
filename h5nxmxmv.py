@@ -99,13 +99,19 @@ else:
 logging.info('opening master file in {} mode'.format('read-only' if mode=='r' else 'write'))
 h5 = h5py.File(src, mode=mode)
 
+
+data_keys = []
+for k, v in h5['/entry/data'].items():
+    data_keys.append(k)
+data_keys.sort()
+
 # Build a list of things to rename
 #
 rename_list = []
-for k, v in h5['/entry/data'].items():
-    # This is how we get the filename only and not the
-    # full path to the linked hdf5 file
+for k in data_keys:
+    # Get the filename and not the full path to the linked hdf5 file
     h5link = h5['/entry/data'].get(k, getlink=True)
+    # it could be HardLink or SoftLink
     if not isinstance(h5link, h5py.ExternalLink):
         logging.fatal('Link "/entry/data/{}" is not an ExternalLink! Aborting...'.format(k))
     srcd = h5link.filename
