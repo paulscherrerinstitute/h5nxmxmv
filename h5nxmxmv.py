@@ -44,12 +44,12 @@ except:
     parser.print_help()
     exit(0)
 
-loglvl = logging.WARN
+loglvl = logging.INFO
 if args.verbose or args.dry_run:
     loglvl = logging.DEBUG
 
 logging.basicConfig(level=loglvl,
-    format= '%(asctime)s - %(levelname)s - %(message)s',
+    format= '%(levelname)s - %(message)s',
     datefmt='%Y.%m.%d %H:%M:%S')
 
 src = args.source
@@ -99,14 +99,15 @@ else:
 logging.info('opening master file in {} mode'.format('read-only' if mode=='r' else 'write'))
 h5 = h5py.File(src, mode=mode)
 
-
+# create sorted list of data files so messages printed make sense.
 data_keys = []
 for k, v in h5['/entry/data'].items():
     data_keys.append(k)
 data_keys.sort()
 
-# Build a list of things to rename
+# build a list of things to rename
 #
+logging.info("creating task list")
 rename_list = []
 for k in data_keys:
     # Get the filename and not the full path to the linked hdf5 file
@@ -133,11 +134,13 @@ for k in data_keys:
         exit(1)
 
     # all good append file
-    logging.info('appending {} to rename list'.format((k, srcd, dstd) ))
+    logging.info('...add task {}: {} => {}'.format(k, srcd, dstd))
     rename_list.append( (k, srcd, dstd) )
-
 rename_list.sort()
 
+if not args.dry_run:
+    logging.info("executing task list")
+# rename existing data files and hdf5 ExternalLink
 for k, s, d in rename_list:
     data_key = '/entry/data/{}'.format(k)
     dst_folder, dst = os.path.split(d)
@@ -146,12 +149,12 @@ for k, s, d in rename_list:
         logging.info('would modify hdf5 master link \"/entry/data/{}\" => {}'.format(k, dst))
         continue
 
-    logging.info('linking {} -> {}'.format(s, d))
+    logging.info('...linking {} -> {}'.format(s, d))
     os.link(s, d)
-    logging.info('updating hdf5 key {} -> {}'.format(data_key, dst))
+    logging.info('.....updating hdf5 key {} -> {}'.format(data_key, dst))
     del h5[data_key]
     h5[data_key] = h5py.ExternalLink(dst, '/entry/data/data')
-    logging.info('unlinking {}'.format(s))
+    logging.info('.....unlinking {}'.format(s))
     os.unlink(s)
 
 h5.close()
