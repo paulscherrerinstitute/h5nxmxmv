@@ -67,15 +67,15 @@ if not os.access(dst_folder, os.W_OK):
         os.getenv('USER')
     ))
 
-if '_master.h5' not in dst:
-    logging.fatal('dest filename must include "_master.h5"')
-    exit(1)
-
 src_prefix = src.replace('_master.h5', '')
 dst_prefix = dst.replace('_master.h5', '')
 
 if not os.path.exists(src):
-    logging.error('source master HDF5 file not found: {}'.format(src))
+    logging.fatal('source master HDF5 file not found: {}'.format(src))
+    exit(1)
+
+if not dst.endswith('_master.h5'):
+    logging.fatal('dest filename must end with "_master.h5"')
     exit(1)
 
 if os.path.exists(dst):
