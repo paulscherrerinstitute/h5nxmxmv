@@ -37,7 +37,12 @@ parser.add_argument('--dry-run', help='dry run; just print what would happen - a
 parser.add_argument('--quiet', dest='verbose', help='be quiet', action='store_false', default=True)
 parser.add_argument("source", help='filename of original HDF5 master file')
 parser.add_argument("dest", help='new filename of renamed master file and data files accordingly')
-args = parser.parse_args()
+
+try:
+    args = parser.parse_args()
+except:
+    parser.print_help()
+    exit(0)
 
 loglvl = logging.WARN
 if args.verbose or args.dry_run:
