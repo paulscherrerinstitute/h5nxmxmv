@@ -58,9 +58,7 @@ loglvl = logging.INFO
 if args.verbose or args.dry_run:
     loglvl = logging.DEBUG
 
-logging.basicConfig(level=loglvl,
-    format= '%(levelname)s - %(message)s',
-    datefmt='%Y.%m.%d %H:%M:%S')
+logging.basicConfig(level=loglvl, format='%(levelname)s - %(message)s', datefmt='%Y.%m.%d %H:%M:%S')
 
 src = args.source
 destination = args.dest
@@ -106,7 +104,7 @@ if args.dry_run:
     mode = 'r'
 else:
     mode = 'a'
-logging.info('opening master file in {} mode'.format('read-only' if mode=='r' else 'write'))
+logging.info('opening master file in {} mode'.format('read-only' if mode == 'r' else 'write'))
 h5 = h5py.File(src, mode=mode)
 
 # create sorted list of data files so messages printed make sense.
@@ -156,7 +154,7 @@ for k in data_keys:
 
     # all good append file
     logging.info('...add task {}: {} => {}'.format(k, srcd, dstd))
-    rename_list.append( (k, srcd, dstd) )
+    rename_list.append((k, srcd, dstd))
 rename_list.sort()
 
 if not args.dry_run:
