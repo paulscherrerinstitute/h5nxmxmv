@@ -48,11 +48,12 @@ parser.add_argument('--quiet', dest='verbose', help='be quiet', action='store_fa
 parser.add_argument("source", help='filename of original HDF5 master file')
 parser.add_argument("dest", help='new filename of renamed master file and data files accordingly')
 
+
 try:
     args = parser.parse_args()
-except:
+except SystemExit:
     parser.print_help()
-    exit(0)
+    exit(-1)
 
 loglvl = logging.INFO
 if args.verbose or args.dry_run:
