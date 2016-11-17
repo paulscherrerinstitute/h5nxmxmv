@@ -135,12 +135,12 @@ for k in data_keys:
 
     if not os.path.exists(srcd):
         if args.missing_ok:
-            logging.warn('missing data file {}  - continuing'.format(srcd))
+            logging.warning('missing data file {}  - continuing'.format(srcd))
             missing_list.append((k, srcd))
             continue
         else:
-            logging.warn('missing data file: {}'.format(srcd))
-            logging.warn('if data collection was aborted, use "--missing-ok" option')
+            logging.warning('missing data file: {}'.format(srcd))
+            logging.warning('if data collection was aborted, use "--missing-ok" option')
             logging.fatal('aborting...')
             h5.close()
             exit(1)
